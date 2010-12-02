@@ -86,6 +86,17 @@ sub can_build {
     return !$cell->has_contents;
 }
 
+# is this a type of cell that cursor shadow would look nice on
+sub should_show_shadow {
+    my ($self, $x, $y) = @_;
+    my ($col, $row) = @{ $self->find_cell($x, $y) };
+    my $cell = $self->cells->[$col]->[$row];
+    return
+        $cell->has_contents
+            ? $cell->contents eq 'tower'? 0: 1
+            : 1;
+}
+
 sub render_markers {
     my ($self, $surface) = @_;
     $self->marks->render($surface);

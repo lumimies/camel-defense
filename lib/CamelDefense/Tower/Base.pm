@@ -6,7 +6,7 @@ use CamelDefense::Time qw(poll);
 use aliased 'CamelDefense::Grid';
 use aliased 'CamelDefense::Wave::Manager' => 'WaveManager';
 
-has wave_manager => (is => 'ro', required => 1, isa => WaveManager);
+has wave_manager => (is => 'ro', required => 1, isa => WaveManager, handles => [qw(find_creeps_in_range)]);
 has grid         => (is => 'ro', required => 1, isa => Grid, handles => [qw(compute_cell_center)]);
 has range        => (is => 'ro', required => 1, isa => Num, default => 100); # in pixels
 
@@ -24,7 +24,7 @@ sub merge_image_def {
     return $def->{image_def} || $class->init_image_def;
 }
 
-# given this tower class defaults and a hash, what is the merge range?
+# given this tower class defaults and a hash, what is the merged range?
 sub merge_range {
     my ($class, $def) = @_;
     return $def->{range} ||

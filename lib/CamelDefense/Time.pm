@@ -100,10 +100,9 @@ sub move(%) {
     my (%args)    = @_;
     my $xy        = $args{xy};
     my $to        = $args{to};
-    my $v         = $args{v};
+    my $v_arg     = $args{v};
+    my $v_cb      = ref($v_arg) eq 'CODE'? $v_arg: sub { $v_arg };
     my $wild      = $args{wild};
-    my $sleep     = max(1/$v, 1/60); # dont move pixel by 1 pixel if you are fast
-    my $step      = $v * $sleep;
     my $init_to   = $to->();
     return unless $init_to; # target died
 
@@ -112,8 +111,10 @@ sub move(%) {
     $to->(undef) if $wild;
     my ($d, $last_d);
 
+
     my $compute_next_xy = $wild
         ? sub { # for wild targets we can't make sure that
+                # distance is decreasing when it moves
                 # distance is decreasing when it moves
             if (my $to_xy = $to->()) {
                 ($x2, $y2) = @$to_xy;
@@ -132,6 +133,9 @@ sub move(%) {
         ($d = distance($x1, $y1, $x2, $y2)) > 1
      && (!$last_d || $last_d >= $d)
     ) {
+        my $vel   = $v_cb->();
+        my $sleep = max(1/$vel, 1/60); # dont move pixel by 1 pixel if you are fast
+        my $step  = $vel * $sleep;
         my $steps = $d / $step;
         last if $steps < 1;
         $x1 += ($x2 - $x1) / $steps;
