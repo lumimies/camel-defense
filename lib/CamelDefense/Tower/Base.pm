@@ -1,7 +1,7 @@
 package CamelDefense::Tower::Base;
 
 use Moose;
-use MooseX::Types::Moose qw(Num);
+use MooseX::Types::Moose qw(Bool Num);
 use CamelDefense::Time qw(poll);
 use aliased 'CamelDefense::Grid';
 use aliased 'CamelDefense::Wave::Manager' => 'WaveManager';
@@ -12,11 +12,20 @@ has range        => (is => 'ro', required => 1, isa => Num, default => 100); # i
 
 has current_target => (is => 'rw');
 
-with 'CamelDefense::Role::Active';
-with 'CamelDefense::Role::GridAlignedSprite';
+has is_selected => (is => 'rw', required => 1, isa => 'Bool', default => 0);
+
+with qw(
+    CamelDefense::Role::Active
+    CamelDefense::Role::GridAlignedSprite
+);
+with 'CamelDefense::Role::AnimatedSprite'; # needs sprite() from CenteredSprite
 
 sub init_image_def { die "Abstract" }
 sub start          { die "Abstract" }
+
+# the following two merges are used by the shadow cursor to show
+# the shadow of the correct tower class, while honoring any overrides
+# in some tower definition hash
 
 # given this tower class defaults and a hash, what is the merged image def?
 sub merge_image_def {
@@ -29,6 +38,18 @@ sub merge_range {
     my ($class, $def) = @_;
     return $def->{range} ||
            $class->meta->find_attribute_by_name("range")->default;
+}
+
+sub set_selected {
+    my $self = shift;
+    $self->is_selected(1);
+    $self->sequence_animation('selected');
+}
+
+sub set_unselected {
+    my $self = shift;
+    $self->is_selected(0);
+    $self->sequence_animation('default');
 }
 
 sub aim {
